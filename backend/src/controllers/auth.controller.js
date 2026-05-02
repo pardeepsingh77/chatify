@@ -3,6 +3,7 @@ import { sendWelcomeEmail } from '../emails/emailHandlers.js';
 import { ENV } from '../../lib/env.js';
 import User from '../modals/user.modal.js'
 import bcrypt from 'bcryptjs';
+import cloudinary from '../../lib/cloudinary.js';
 
 export const signup = async (req, res) => {
     try {
@@ -77,4 +78,38 @@ export const login = async (req,res) => {
 export const logout = async (_,res) => {
     res.cookies('jwt','',{maxAge:0})
     res.status(200).json({message : "Logged out successfully"})
+}
+
+export const updateProfile = async (req,res) => {
+    try{
+        const {profilePic} = req.body;
+        if(!profilePic){
+            res.status(400).json({message : 'Profile pic is required'})
+        }
+        const user = req.user._id;
+        if(!user){
+            res.status(400).json({message : "User not found"})
+        }
+        const data = await cloudinary.uploader.upload(profilePic)
+        const findedUser = await User.findByIdAndUpdate(user,{profilePic:data.secure_url},{new:true}).select("-password");
+        res.status(200).json({
+            message : "Profile updated successfully",
+            data : findedUser
+        })
+    }catch(err){
+        console.log("error in update profile controller",err);
+        res.status(500).json({message : "Internal server error"})
+    }
+}
+
+
+export const checkUser = async () => {
+    const user = req.user;
+    if(!user){
+        res.status(400).json({message : "User not found"})
+    }
+    res.status(200).json({
+        message : "User authenticated",
+        data : user
+    })
 }
