@@ -75,10 +75,10 @@ export const login = async (req,res) => {
     }
 }
 
-export const logout = async (_,res) => {
-    res.cookies('jwt','',{maxAge:0})
-    res.status(200).json({message : "Logged out successfully"})
-}
+export const logout = (_, res) => {
+  res.cookie("jwt", "", { maxAge: 0 });
+  res.status(200).json({ message: "Logged out successfully" });
+};
 
 export const updateProfile = async (req,res) => {
     try{
@@ -103,7 +103,7 @@ export const updateProfile = async (req,res) => {
 }
 
 
-export const checkUser = async () => {
+export const checkUser = async (req,res) => {
     const user = req.user;
     if(!user){
         res.status(400).json({message : "User not found"})
