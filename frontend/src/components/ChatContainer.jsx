@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useLayoutEffect, useRef } from 'react'
 import { useChatStore } from '../store/useChatStore';
 import { useAuthStore } from '../store/useAuthStore';
 import ChatHeader from './ChatHeader';
@@ -9,11 +9,31 @@ import MessagesLoadingSkeleton from './MessagesLoadingSkeleton';
 function ChatContainer() {
   const { selectedUser, getMessagesByUserId, messages ,isMessagesLoading} = useChatStore();
   const { authUser } = useAuthStore();
+  const messageendRef = useRef(null)
+
+  const formatMessageTime = (createdAt) => {
+    if (!createdAt) return "";
+    const date = new Date(createdAt);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+
   useEffect(() => {
     if (selectedUser) {
       getMessagesByUserId(selectedUser._id);
     }
   }, [selectedUser, getMessagesByUserId])
+
+  useLayoutEffect(() => {
+    const node = messageendRef.current;
+    if (!node) return;
+
+    // wait one frame so the new message is painted before scrolling
+    requestAnimationFrame(() => {
+      node.scrollIntoView({ block: "end", behavior: "smooth" });
+    });
+  }, [messages, selectedUser]);
+
   return (
     <>
       <ChatHeader />
@@ -28,12 +48,13 @@ function ChatContainer() {
                   )}
                   {msg.text && <p className='mt-2'>{msg.text}</p>}
                   <p className='text-xs mt-1 opacity-75 flex items-center gap-1'>
-                    {new Date(msg.createdAt).toISOString().slice(11,16)}
+                    {formatMessageTime(msg.createdAt)}
                   </p>
                 </div>
               </div>
             ))}
-          </div>
+            <div ref={messageendRef} />
+          </div >
         ) : isMessagesLoading ? <MessagesLoadingSkeleton /> : (
           <NoChatHistoryPlaceholder name={selectedUser?.fullName} />
         )}
