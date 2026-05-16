@@ -1,6 +1,11 @@
 import axios from "axios";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+    || (import.meta.env.DEV
+        ? "http://localhost:3000/api"
+        : "https://chatify-production-e698.up.railway.app/api");
+
 export const axiosInstance = axios.create({
-    baseURL : import.meta.env.MODE === 'development' ? "http://localhost:3000/api" : "/api",
+        baseURL : API_BASE_URL,
     withCredentials: true,
 })
