@@ -5,7 +5,10 @@ import { ENV } from '../../lib/env.js';
 
 export const socketAuthMiddleware = async (socket , next) => {
     try {
-        const token = socket.handshake.headers.cookie?.split("; ").find((row)=>row.startsWith("jwt="))?.split("=")[1];
+        const authToken = socket.handshake.auth?.token;
+        const authHeader = socket.handshake.headers.authorization || '';
+        const headerToken = authHeader.startsWith('Bearer ') ? authHeader.substring(7) : null;
+        const token = authToken || headerToken;
         if(!token){
             console.log('Socket connection rejected: No token provided');
             return next(new Error("UNauthorized - No Token Provided"))

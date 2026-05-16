@@ -4,7 +4,8 @@ import User from '../modals/user.modal.js';
 
 export const protectRoute = async (req,res,next) => {
     try{
-        const token = req.cookies.jwt;
+        const authHeader = req.headers.authorization || '';
+        const token = authHeader.startsWith('Bearer ') ? authHeader.substring(7) : null;
         if(!token){
             return res.status(401).json({message: "Unauthorised - No Token Provided"})
         }

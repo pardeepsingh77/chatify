@@ -33,9 +33,17 @@ export const signup = async (req, res) => {
             // await newUser.save();
 
             const savedUser = await newUser.save();
-            generateToken(savedUser._id, res)
+            const token = generateToken(savedUser._id)
 
-            res.status(201).json({ _id: newUser._id, fullName: newUser.fullName, email: newUser.email  , profilePic: newUser.profilePic })
+            res.status(201).json({
+                user: {
+                    _id: newUser._id,
+                    fullName: newUser.fullName,
+                    email: newUser.email,
+                    profilePic: newUser.profilePic,
+                },
+                token,
+            })
 
             try {
                 await sendWelcomeEmail(savedUser.email,savedUser.fullName,ENV.CLIENT_URL)
@@ -66,8 +74,16 @@ export const login = async (req,res) => {
         if(!isPasswordMatch){
             return res.status(400).json({message : "Invalid credentials"})
         }
-        generateToken(user._id,res)
-        res.status(200).json({_id : user._id , fullName : user.fullName , email : user.email , profilePic : user.profilePic})
+        const token = generateToken(user._id)
+        res.status(200).json({
+            user: {
+                _id: user._id,
+                fullName: user.fullName,
+                email: user.email,
+                profilePic: user.profilePic,
+            },
+            token,
+        })
     }
     catch(err){
         console.log("Error in login controller",err)
@@ -76,13 +92,6 @@ export const login = async (req,res) => {
 }
 
 export const logout = (_, res) => {
-    const isProduction = ENV.NODE_ENV === 'production';
-    res.cookie("jwt", "", {
-        maxAge: 0,
-        httpOnly: true,
-        sameSite: isProduction ? "none" : "lax",
-        secure: isProduction,
-    });
   res.status(200).json({ message: "Logged out successfully" });
 };
 

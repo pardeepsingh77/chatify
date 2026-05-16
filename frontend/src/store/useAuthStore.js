@@ -20,12 +20,18 @@ export const useAuthStore = create((set, get) => ({
 
 
     checkAuth: async () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            set({ authUser: null, isCheckingAuth: false });
+            return;
+        }
         try {
             const res = await axiosInstance.get('/auth/check');
             set({ authUser: res.data.data })
             get().connectSocket();
         } catch (error) {
             console.log('Something went wrong in auth check', error)
+            localStorage.removeItem('token');
             set({ authUser: null })
         } finally {
             set({ isCheckingAuth: false })
@@ -35,7 +41,8 @@ export const useAuthStore = create((set, get) => ({
         try {
             set({ isSigningUp: true })
             const res = await axiosInstance.post('/auth/signup', data)
-            set({ authUser: res.data });
+            localStorage.setItem('token', res.data.token);
+            set({ authUser: res.data.user });
             toast.success("Account Created Successfully!")
             get().connectSocket();
         } catch (error) {
@@ -50,7 +57,8 @@ export const useAuthStore = create((set, get) => ({
         try {
             set({ isLoggingIn: true })
             const res = await axiosInstance.post('/auth/login', data)
-            set({ authUser: res.data });
+            localStorage.setItem('token', res.data.token);
+            set({ authUser: res.data.user });
             toast.success("Logged in Successfully!")
             get().connectSocket();
         } catch (error) {
@@ -70,13 +78,17 @@ export const useAuthStore = create((set, get) => ({
         } catch (error) {
             toast.error("Something went wrong while logging out");
             console.log('Something went wrong while logging out', error);
+        } finally {
+            localStorage.removeItem('token');
+            set({ authUser: null });
+            get().disconnectSocket();
         }
     },
     updateProfile: async (data) => {
         const toastId = toast.loading('Updating profile...')
         try {
             const res = await axiosInstance.put("/auth/update-profile", data);
-            set({ authUser: res.data })
+            set({ authUser: res.data.data })
             toast.success('Profile Updated Successfully', { id: toastId })
         } catch (error) {
             console.log("error in update profile:", error)
@@ -90,7 +102,9 @@ export const useAuthStore = create((set, get) => ({
         const { authUser } = get();
         const { socket: existingSocket } = get();
         if (!authUser || existingSocket?.connected) return;
-        const newSocket = io(SOCKET_URL, { withCredentials: true })
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        const newSocket = io(SOCKET_URL, { auth: { token } })
         newSocket.connect();
         set({ socket: newSocket })
 
