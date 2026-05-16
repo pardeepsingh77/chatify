@@ -13,10 +13,10 @@ const Chatpage = () => {
   const {logout} = useAuthStore();
   const {activeTab , selectedUser} = useChatStore();
   return (
-    <div className='relative w-full max-w-6xl h-[800px]'>
+    <div className='relative w-full max-w-6xl h-[calc(100vh-2rem)] min-h-[600px] md:h-[800px]'>
       <BorderAnimatedContainer>
         {/* left side */}
-        <div className='w-80 bg-slate-800/50 backdrop-blur-sm flex flex-col'>
+        <div className={`w-full bg-slate-800/50 backdrop-blur-sm flex flex-col md:w-80 ${selectedUser ? 'hidden md:flex' : 'flex'}`}>
          <ProfileHeader />
          <ActiveTabSwitch />
 
@@ -25,7 +25,7 @@ const Chatpage = () => {
          </div>
         </div>
         {/* right side */}
-        <div className='flex-1 flex  flex-col bg-slate-900/50 backdrop-blur-sm'>
+        <div className={`flex-1 flex flex-col bg-slate-900/50 backdrop-blur-sm ${selectedUser ? 'flex' : 'hidden md:flex'}`}>
         {selectedUser ? <ChatContainer /> : <NoConversationPlaceholder /> }
         </div>
       </BorderAnimatedContainer>
