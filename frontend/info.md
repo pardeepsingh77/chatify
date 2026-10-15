@@ -12,3 +12,6 @@
 -> twelvth installment => 
 
 2000 for something from rohit
+
+12000 saved in meera account
+4000 paid from that account for emi
